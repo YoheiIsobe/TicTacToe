@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import GoogleMobileAds
 
 struct ContentView: View {
     @State private var cells = Array(repeating: "", count: 9)   //セル
     @State private var playerFlg = true         // プレイヤーフラグ
     @State private var draw = false             // 引き分けフラグ
     @State private var winner: String? = nil    // 勝者を保存
+    @State private var pulse = false
     let columns = Array(repeating: GridItem(.flexible()), count: 3) //マス
 
     //勝ちパターン
@@ -25,9 +27,17 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             // -----------------------------
-            // ゲーム本体(VStack)
+            // 広告+ゲーム画面（ZStack の最背面）
             // -----------------------------
             VStack {
+                //広告表示
+                //AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
+                AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
+                    .frame(width: 320, height: 50)
+
+                //スペース
+                Spacer()
+
                 //現在のプレイヤー表示
                 HStack {
                     Text("Player:")
@@ -37,8 +47,10 @@ struct ContentView: View {
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .padding(.top, 100)
 
-                //マス表示
+                //スペース
                 Spacer()
+
+                //盤面表示
                 VStack(spacing: 0) {
                     ForEach(0..<3) { row in
                         HStack(spacing: 0) {
@@ -82,45 +94,11 @@ struct ContentView: View {
                 }
                 .padding(20)
 
-
-                    /*
-                LazyVGrid(columns: columns, alignment: .center, spacing: 10) {
-                    ForEach(cells.indices, id: \.self) { index in
-                        ZStack {
-                            Rectangle()
-                                .fill(Color.white)
-                                .cornerRadius(4)
-                                .overlay(
-                                    Rectangle()
-                                        .stroke(Color.black, lineWidth: 5)
-                                )
-                            Text(cells[index])
-                                .font(.system(size: 60, weight: .bold, design: .rounded))
-                                .bold()
-                        }
-                        .aspectRatio(1, contentMode: .fit)
-                        .onTapGesture {
-                            if winner == nil && cells[index].isEmpty {
-                                //勝者判定
-                                cells[index] = tapAction()
-                                if let win = checkWinner() {
-                                    winner = win
-                                    return
-                                }
-                                //引分け判定
-                                checkDraw()
-
-                                //プレイヤー交代
-                                playerFlg.toggle()
-                            }
-                        }
-                    }
-                }
-                .padding()
-                     */
+                //スペース
+                Spacer()
+                    .frame(height: 50)
 
                 //リセットボタン表示
-                Spacer()
                 Button(action: {
                     resetGame()
                 }) {
@@ -131,18 +109,32 @@ struct ContentView: View {
                         .padding(.horizontal, 24)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red.opacity(0.9))
+                                .fill( (winner != nil || draw) ? Color.red : Color.gray )
                         )
+                        .scaleEffect(pulse ? 1.02 : 0.98)   // ← ピクピク
+                        .animation(
+                            pulse ?
+                            Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)
+                            : Animation.default,
+                            value: pulse
+                        )
+
                 }
                 .padding(.bottom, 100)
+                .onChange(of: winner) {
+                    pulse = (winner != nil || draw)
+                }
+                .onChange(of: draw) {
+                    pulse = draw || winner != nil
+                }
             }
 
             // -----------------------------
             // 勝敗 or 引き分け表示（ZStack の最前面）
             // -----------------------------
             if winner != nil || draw {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
+                Color.black.opacity(0.6)
+                    .frame(height: 100)
                     .allowsHitTesting(false)
 
                 VStack {
@@ -200,6 +192,7 @@ struct ContentView: View {
         playerFlg = true
         winner = nil
         draw = false
+        pulse = false
     }
 }
 
