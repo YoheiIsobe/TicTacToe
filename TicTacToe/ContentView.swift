@@ -26,13 +26,15 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            // 全体の背景白
+            Color.white.ignoresSafeArea()
             // -----------------------------
             // 広告+ゲーム画面（ZStack の最背面）
             // -----------------------------
             VStack {
                 //広告表示
-                //AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
-                AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
+                AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
+                //AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
                     .frame(width: 320, height: 50)
 
                 //スペース
@@ -45,6 +47,7 @@ struct ContentView: View {
                         .frame(width: 40)
                 }
                 .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.black)
                 .padding(.top, 100)
 
                 //スペース
@@ -68,6 +71,7 @@ struct ContentView: View {
 
                                     Text(cells[index])
                                         .font(.system(size: 60, weight: .bold, design: .rounded))
+                                        .foregroundColor(.black)
                                         .bold()
                                 }
                                 .aspectRatio(1, contentMode: .fit)
