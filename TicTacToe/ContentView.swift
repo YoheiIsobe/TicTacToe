@@ -9,6 +9,7 @@ import SwiftUI
 import GoogleMobileAds
 
 struct ContentView: View {
+    //debug
     @State private var cells = Array(repeating: "", count: 9)   //セル
     @State private var playerFlg = true         // プレイヤーフラグ
     @State private var draw = false             // 引き分けフラグ
