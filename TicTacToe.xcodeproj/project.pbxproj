@@ -18,7 +18,6 @@
 		F11E8B862ED405570009563D /* Exceptions for "TicTacToe" folder in "TicTacToe" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info_Release.plist,
 				Info.plist,
 			);
 			target = F16259712ED1F5E200A5F457 /* TicTacToe */;
@@ -279,7 +278,7 @@
 				DEVELOPMENT_TEAM = SG7W5VDYUQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_FILE[sdk=*]" = TicTacToe/Info.plist;
+				INFOPLIST_FILE = /Users/takuma/data/01_develop/01_Swift/02_Release/TicTacToe/TicTacToe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "○×ゲーム";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -291,7 +290,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0;
+				MARKETING_VERSION = 4.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hoge.game.marubatsu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -314,7 +313,7 @@
 				DEVELOPMENT_TEAM = SG7W5VDYUQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_FILE[sdk=*]" = TicTacToe/Info_Release.plist;
+				INFOPLIST_FILE = /Users/takuma/data/01_develop/01_Swift/02_Release/TicTacToe/TicTacToe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "○×ゲーム";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -326,7 +325,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0;
+				MARKETING_VERSION = 4.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hoge.game.marubatsu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

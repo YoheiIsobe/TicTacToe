@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
+import UIKit
 import GoogleMobileAds
 
-struct ContentView: View {
-    //debug
+struct GameView: View {
     @State private var cells = Array(repeating: "", count: 9)   //セル
     @State private var playerFlg = true         // プレイヤーフラグ
     @State private var draw = false             // 引き分けフラグ
@@ -34,8 +34,8 @@ struct ContentView: View {
             // -----------------------------
             VStack {
                 //広告表示
-                AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
-                //AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
+                //AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
+                AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
                     .frame(width: 320, height: 50)
 
                 //スペース
@@ -78,6 +78,7 @@ struct ContentView: View {
                                 .aspectRatio(1, contentMode: .fit)
                                 .onTapGesture {
                                     if winner == nil && cells[index].isEmpty {
+                                        playHaptic()
                                         cells[index] = tapAction()
 
                                         //勝者判定実行
@@ -199,9 +200,16 @@ struct ContentView: View {
         draw = false
         pulse = false
     }
+
+    //振動
+    func playHaptic() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        generator.impactOccurred()
+    }
 }
 
 
 #Preview {
-    ContentView()
+    GameView()
 }
