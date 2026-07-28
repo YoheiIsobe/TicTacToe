@@ -87,7 +87,6 @@ struct GameView: View {
                 }
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundColor(.black)
-                .padding(.top, 100)
 
                 //スペース
                 Spacer()
@@ -140,6 +139,7 @@ struct GameView: View {
                     }
                 }
                 .padding(20)
+                .layoutPriority(1)
 
                 //スペース
                 Spacer()
@@ -183,8 +183,14 @@ struct GameView: View {
                     }
                 }
             }
-            .navigationTitle(screenTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(screenTitle)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                }
+            }
 
             // -----------------------------
             // 勝敗 or 引き分け表示（ZStack の最前面）
