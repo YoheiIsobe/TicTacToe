@@ -9,13 +9,31 @@ import SwiftUI
 import UIKit
 import GoogleMobileAds
 
+//対戦モード
+enum GameMode {
+    case twoPlayer
+    case vsCPU(difficulty: CPUDifficulty)
+}
+
+//CPUの強さ
+enum CPUDifficulty: String {
+    case easy = "弱い"
+    case normal = "普通"
+    case hard = "強い"
+}
+
 struct GameView: View {
+    let mode: GameMode
     @State private var cells = Array(repeating: "", count: 9)   //セル
-    @State private var playerFlg = true         // プレイヤーフラグ
+    @State private var playerFlg = true         // プレイヤーフラグ（true:◯番, false:×番）
     @State private var draw = false             // 引き分けフラグ
     @State private var winner: String? = nil    // 勝者を保存
     @State private var pulse = false
     let columns = Array(repeating: GridItem(.flexible()), count: 3) //マス
+
+    init(mode: GameMode = .twoPlayer) {
+        self.mode = mode
+    }
 
     //勝ちパターン
     let winPatterns = [
@@ -23,6 +41,26 @@ struct GameView: View {
         [0,3,6], [1,4,7], [2,5,8],
         [0,4,8], [2,4,6]
     ]
+
+    //現在の手番表示ラベル
+    var currentTurnLabel: String {
+        switch mode {
+        case .twoPlayer:
+            return "Player:"
+        case .vsCPU:
+            return playerFlg ? "あなた:" : "CPU:"
+        }
+    }
+
+    //画面タイトル
+    var screenTitle: String {
+        switch mode {
+        case .twoPlayer:
+            return "2人対戦"
+        case .vsCPU(let difficulty):
+            return "CPU対戦(\(difficulty.rawValue))"
+        }
+    }
 
 
     var body: some View {
@@ -43,7 +81,7 @@ struct GameView: View {
 
                 //現在のプレイヤー表示
                 HStack {
-                    Text("Player:")
+                    Text(currentTurnLabel)
                     Text(playerFlg ? "◯" : "×")
                         .frame(width: 40)
                 }
@@ -77,22 +115,25 @@ struct GameView: View {
                                 }
                                 .aspectRatio(1, contentMode: .fit)
                                 .onTapGesture {
-                                    if winner == nil && cells[index].isEmpty {
-                                        playHaptic()
-                                        cells[index] = tapAction()
+                                    guard winner == nil, !draw, cells[index].isEmpty else { return }
 
-                                        //勝者判定実行
-                                        if let win = checkWinner() {
-                                            winner = win
-                                            return
-                                        }
+                                    //CPU戦でCPUの番はタップ無効
+                                    if case .vsCPU = mode, !playerFlg { return }
 
-                                        //引き分け判定実行
-                                        checkDraw()
+                                    playHaptic()
+                                    cells[index] = tapAction()
 
-                                        //プレイヤー交代実行
-                                        playerFlg.toggle()
+                                    //勝者判定実行
+                                    if let win = checkWinner() {
+                                        winner = win
+                                        return
                                     }
+
+                                    //引き分け判定実行
+                                    checkDraw()
+
+                                    //プレイヤー交代実行
+                                    playerFlg.toggle()
                                 }
                             }
                         }
@@ -134,6 +175,16 @@ struct GameView: View {
                     pulse = draw || winner != nil
                 }
             }
+            .onChange(of: playerFlg) { _, newValue in
+                //CPU戦で×番(CPU)になったら少し間を置いて着手
+                if case .vsCPU = mode, newValue == false, winner == nil, !draw {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        cpuMove()
+                    }
+                }
+            }
+            .navigationTitle(screenTitle)
+            .navigationBarTitleDisplayMode(.inline)
 
             // -----------------------------
             // 勝敗 or 引き分け表示（ZStack の最前面）
@@ -173,16 +224,117 @@ struct GameView: View {
         return playerFlg ? "◯" : "×"
     }
 
-    // 勝者判定
-    func checkWinner() -> String? {
+    // 勝者判定（board省略時は現在の盤面を判定）
+    func checkWinner(_ board: [String]? = nil) -> String? {
+        let b = board ?? cells
         for p in winPatterns {
-            if cells[p[0]] != "" &&
-                cells[p[0]] == cells[p[1]] &&
-                cells[p[1]] == cells[p[2]] {
-                return cells[p[0]]
+            if b[p[0]] != "" &&
+                b[p[0]] == b[p[1]] &&
+                b[p[1]] == b[p[2]] {
+                return b[p[0]]
             }
         }
         return nil
+    }
+
+    // 空いているマスの一覧
+    func availableMoves(_ board: [String]) -> [Int] {
+        board.indices.filter { board[$0].isEmpty }
+    }
+
+    // markが置けば勝てるマスを探す
+    func findWinningMove(for mark: String, in board: [String]) -> Int? {
+        for m in availableMoves(board) {
+            var testBoard = board
+            testBoard[m] = mark
+            if checkWinner(testBoard) == mark {
+                return m
+            }
+        }
+        return nil
+    }
+
+    // CPUの着手
+    func cpuMove() {
+        guard case .vsCPU(let difficulty) = mode else { return }
+        guard winner == nil, !draw else { return }
+
+        let cpuMark = "×"
+        let humanMark = "◯"
+        let moves = availableMoves(cells)
+        guard !moves.isEmpty else { return }
+
+        let move: Int
+        switch difficulty {
+        case .easy:
+            // 完全ランダム
+            move = moves.randomElement()!
+        case .normal:
+            // 勝てるならその手、ブロックできるならブロック、それ以外はランダム
+            if let winMove = findWinningMove(for: cpuMark, in: cells) {
+                move = winMove
+            } else if let blockMove = findWinningMove(for: humanMark, in: cells) {
+                move = blockMove
+            } else {
+                move = moves.randomElement()!
+            }
+        case .hard:
+            // ミニマックス法で最善手（負けない）
+            move = bestMove(cells, cpuMark: cpuMark, humanMark: humanMark)
+        }
+
+        cells[move] = cpuMark
+
+        if let win = checkWinner() {
+            winner = win
+            return
+        }
+
+        checkDraw()
+        playerFlg.toggle()
+    }
+
+    // ミニマックス法で最善手を求める
+    func bestMove(_ board: [String], cpuMark: String, humanMark: String) -> Int {
+        var bestScore = Int.min
+        var move = availableMoves(board).first ?? 0
+        for m in availableMoves(board) {
+            var newBoard = board
+            newBoard[m] = cpuMark
+            let score = minimax(newBoard, isMaximizing: false, cpuMark: cpuMark, humanMark: humanMark)
+            if score > bestScore {
+                bestScore = score
+                move = m
+            }
+        }
+        return move
+    }
+
+    func minimax(_ board: [String], isMaximizing: Bool, cpuMark: String, humanMark: String) -> Int {
+        if let w = checkWinner(board) {
+            return w == cpuMark ? 10 : -10
+        }
+        if availableMoves(board).isEmpty {
+            return 0
+        }
+
+        if isMaximizing {
+            var best = Int.min
+            for m in availableMoves(board) {
+                var newBoard = board
+                newBoard[m] = cpuMark
+                best = max(best, minimax(newBoard, isMaximizing: false, cpuMark: cpuMark, humanMark: humanMark))
+            }
+            return best
+        } else {
+            var best = Int.max
+            for m in availableMoves(board) {
+                var newBoard = board
+                newBoard[m] = humanMark
+                best = min(best, minimax(newBoard, isMaximizing: true, cpuMark: cpuMark, humanMark: humanMark))
+            }
+            return best
+        }
     }
 
     // 引き分け判定
