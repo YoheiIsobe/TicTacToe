@@ -184,7 +184,7 @@ struct GameView: View {
             .onChange(of: playerFlg) { _, newValue in
                 //CPU戦で×番(CPU)になったら少し間を置いて着手
                 if case .vsCPU = mode, newValue == false, winner == nil, !draw {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.8...1.8)) {
                         cpuMove()
                     }
                 }
