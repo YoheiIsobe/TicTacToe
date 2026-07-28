@@ -71,13 +71,9 @@ struct GameView: View {
             // 広告+ゲーム画面（ZStack の最背面）
             // -----------------------------
             VStack {
-                //広告表示
-                //AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
-                AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
-                    .frame(width: 320, height: 50)
-
-                //スペース
+                //スペース（上部の余白を小さめに固定）
                 Spacer()
+                    .frame(height: 20)
 
                 //現在のプレイヤー表示
                 HStack {
@@ -90,6 +86,7 @@ struct GameView: View {
 
                 //スペース
                 Spacer()
+                    .frame(height: 24)
 
                 //盤面表示
                 VStack(spacing: 0) {
@@ -108,7 +105,7 @@ struct GameView: View {
                                         )
 
                                     Text(cells[index])
-                                        .font(.system(size: 60, weight: .bold, design: .rounded))
+                                        .font(.system(size: 76, weight: .bold, design: .rounded))
                                         .foregroundColor(.black)
                                         .bold()
                                 }
@@ -167,13 +164,22 @@ struct GameView: View {
                         )
 
                 }
-                .padding(.bottom, 100)
+                .padding(.bottom, 48)
                 .onChange(of: winner) {
                     pulse = (winner != nil || draw)
                 }
                 .onChange(of: draw) {
                     pulse = draw || winner != nil
                 }
+
+                //残り余白を吸収（Player/盤面/リセットボタンの塊を上に寄せる）
+                Spacer()
+            }
+            .safeAreaInset(edge: .bottom) {
+                //広告表示（画面最下部に固定）
+                //AdBannerView(adUnitID: "ca-app-pub-3940256099942544/2934735716")    //テスト広告
+                AdBannerView(adUnitID: "ca-app-pub-4013798308034554/2995384805")  //本番広告
+                    .frame(width: 320, height: 50)
             }
             .onChange(of: playerFlg) { _, newValue in
                 //CPU戦で×番(CPU)になったら少し間を置いて着手
